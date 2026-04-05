@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;600;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --neon: #00ff88; --hot: #ff1f71; --glass: rgba(255, 255, 255, 0.04); }
+        body { background: #000; color: #fff; font-family: 'Outfit', sans-serif; margin: 0; padding: 15px 15px 100px 15px; background-image: radial-gradient(circle at 50% -20%, #1a1a2e, #000); }
+        .section { display: none; } .active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .card { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.08); border-radius: 30px; padding: 20px; margin-bottom: 12px; }
+        .nav { position: fixed; bottom: 25px; left: 20px; right: 20px; background: rgba(15,15,25,0.8); backdrop-filter: blur(20px); border-radius: 25px; display: flex; justify-content: space-around; padding: 18px; border: 1px solid rgba(255,255,255,0.1); }
+        .nav-item { font-size: 0.65rem; font-weight: 900; opacity: 0.4; text-transform: uppercase; }
+        .active-nav { opacity: 1; color: var(--neon); }
+        .score { font-size: 3rem; font-weight: 900; text-align: center; letter-spacing: -2px; }
+    </style>
+</head>
+<body>
+    <div id="arena" class="section active"><div id="arena-list"></div></div>
+    <div id="intel" class="section"><h2 style="font-weight:900;">MARKET ORACLE</h2><div id="intel-list"></div></div>
+    <div id="economy" class="section">
+        <div class="card" style="text-align:center;">
+            <div style="font-size:0.6rem; opacity:0.5;">AURA</div>
+            <div id="aura-val" style="font-size:3rem; font-weight:900; color:var(--neon);">1,000.00</div>
+        </div>
+    </div>
+    <nav class="nav">
+        <div class="nav-item active-nav" onclick="show('arena', this)">Arena</div>
+        <div class="nav-item" onclick="show('intel', this)">Intel</div>
+        <div class="nav-item" onclick="show('economy', this)">Economy</div>
+    </nav>
+    <script>
+        const tg = window.Telegram.WebApp;
+        const sb = supabase.createClient("https://yawqzipdrqbfagxfdehn.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlhd3F6aXBkcnFiZmFneGZkZWhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5MjQyNjMsImV4cCI6MjA4OTUwMDI2M30.y7lafaEkrMoCbu1EXjrDeK2jxf63CrgUlm55z5K8eMk");
+        function show(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active-nav'));
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active-nav');
+            tg.HapticFeedback.impactOccurred('medium');
+        }
+        async function sync() {
+            const { data: arena } = await sb.from('live_arena').select('*');
+            const { data: intel } = await sb.from('market_intel').select('*');
+            document.getElementById('arena-list').innerHTML = arena.map(m => `
+                <div class="card">
+                    <div style="font-size:0.6rem; opacity:0.5; text-align:center;">${m.teams}</div>
+                    <div class="score">${m.score}</div>
+                </div>`).join('');
+            document.getElementById('intel-list').innerHTML = intel.map(i => `
+                <div class="card" style="display:flex; justify-content:space-between;">
+                    <div style="font-weight:900;">${i.item_name}</div>
+                    <div style="color:var(--neon); font-weight:900;">₦${i.price_naira}</div>
+                </div>`).join('');
+        }
+        setInterval(sync, 10000); sync();
+    </script>
+</body>
+</html>

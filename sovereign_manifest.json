@@ -1,0 +1,16 @@
+{
+  "system_name": "Sovereign Engine",
+  "version": "1.0.0",
+  "admin": "Valentine Azunna Ukah",
+  "architecture": "Modular Blade System",
+  "cores": {
+    "arena": "Live Sports & AI Commentary",
+    "intel": "Onitsha Market Oracle & AI News Gists",
+    "economy": "Aura/Stars Social Finance System"
+  },
+  "infrastructure": {
+    "frontend": "Vercel / Tailwind-Glass",
+    "backend": "Oracle Cloud / FastAPI",
+    "database": "Supabase PostgreSQL"
+  }
+}
