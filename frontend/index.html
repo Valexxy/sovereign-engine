@@ -1,63 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sovereign Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white p-6">
-    <div id="loader" class="fixed inset-0 bg-black flex items-center justify-center z-50">
-        <p class="animate-pulse text-yellow-500 font-black italic">SYNCING ENGINE...</p>
+<body class="bg-[#050505] text-white p-6 font-sans">
+    <h1 class="text-2xl font-black italic mb-8 uppercase tracking-tighter">Market Oracle</h1>
+
+    <div class="bg-[#111] p-6 rounded-[32px] border border-white/5 mb-8">
+        <div class="flex justify-between items-center mb-6">
+            <span class="text-sm font-bold text-gray-400">USD / NGN</span>
+            <span id="usd-val" class="text-xl font-black text-[#00ff88]">₦...</span>
+        </div>
+        <div class="flex justify-between items-center">
+            <span class="text-sm font-bold text-gray-400">CNY / NGN</span>
+            <span id="cny-val" class="text-xl font-black text-[#00ff88]">₦...</span>
+        </div>
     </div>
 
-    <h1 class="text-2xl font-black italic mb-6">SOVEREIGN<span class="text-yellow-500">.</span></h1>
-
-    <div class="bg-[#111] p-5 rounded-[30px] border border-white/5 mb-6">
-        <h2 id="intel-title" class="text-xl font-bold">...</h2>
-        <p id="intel-summary" class="text-gray-500 text-xs mt-3 italic">...</p>
-    </div>
-
-    <div class="grid grid-cols-2 gap-4">
-        <div class="bg-[#111] p-5 rounded-[24px]">
-            <p class="text-[10px] text-blue-500 font-bold mb-1 uppercase">USD/NGN</p>
-            <span id="usd-val" class="text-xl font-black">₦...</span>
-        </div>
-        <div class="bg-[#111] p-5 rounded-[24px]">
-            <p class="text-[10px] text-red-500 font-bold mb-1 uppercase">CNY/NGN</p>
-            <span id="cny-val" class="text-xl font-black">₦...</span>
-        </div>
+    <div class="bg-gradient-to-br from-[#111] to-[#000] p-8 rounded-[32px] border border-white/5 text-center">
+        <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Aura Balance</p>
+        <h2 id="aura-val" class="text-5xl font-black text-[#00ff88]">...</h2>
     </div>
 
     <script>
         const BRIDGE = "https://verlene-retrouss-eldora.ngrok-free.dev";
-        const headers = { "ngrok-skip-browser-warning": "69420" };
+        // THIS HEADER BYPASSES THE NGROK WHITE SCREEN
+        const headers = { "ngrok-skip-browser-warning": "true" };
 
-        async function init() {
+        async function sync() {
             try {
-                const [mRes, iRes] = await Promise.all([
+                // Get User ID from URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const uid = urlParams.get('user_id') || '859002701';
+
+                const [mRes, uRes] = await Promise.all([
                     fetch(`${BRIDGE}/market`, { headers }),
-                    fetch(`${BRIDGE}/intel`, { headers })
+                    fetch(`${BRIDGE}/user/${uid}`, { headers })
                 ]);
                 
                 const m = await mRes.json();
-                const i = await iRes.json();
+                const u = await uRes.json();
 
-                document.getElementById('usd-val').innerText = `₦${m.usd_ngn.toLocaleString()}`;
-                document.getElementById('cny-val').innerText = `₦${m.cny_ngn.toLocaleString()}`;
-                
-                if (i && i.length > 0) {
-                    document.getElementById('intel-title').innerText = i[0].title;
-                    document.getElementById('intel-summary').innerText = i[0].summary;
-                }
-                
-                document.getElementById('loader').classList.add('hidden');
+                // Safety checks to prevent "undefined"
+                document.getElementById('usd-val').innerText = `₦${(m.usd_ngn || 0).toLocaleString()}`;
+                document.getElementById('cny-val').innerText = `₦${(m.cny_ngn || 0).toLocaleString()}`;
+                document.getElementById('aura-val').innerText = (u.aura_balance || 0).toLocaleString();
+
             } catch (err) {
-                console.error(err);
-                document.getElementById('loader').innerHTML = `<p class="text-red-500 text-center">BRIDGE OFFLINE<br><span class="text-[10px]">Check Ngrok Tunnel</span></p>`;
+                console.error("Sync Failed", err);
             }
         }
-        init();
+        sync();
     </script>
 </body>
 </html>
